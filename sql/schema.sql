@@ -15,6 +15,11 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Seed default admin account (username: admin, password: admin123)
+INSERT INTO `admin_users` (`username`, `password`, `nama`, `level`) 
+VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Pemilik Toko', 'owner')
+ON DUPLICATE KEY UPDATE `username`=`username`;
+
 -- --------------------------------------------------------
 -- Table: produk
 -- --------------------------------------------------------
@@ -29,6 +34,17 @@ CREATE TABLE IF NOT EXISTS `produk` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed initial products data
+INSERT INTO `produk` (`nama`, `kategori`, `harga`, `deskripsi`, `foto`) VALUES
+('Pempek Kapal Selam Besar', 'Kapal Selam', 18000, 'Pempek ukuran besar dengan isian telur utuh.', 'assets/kapal_selam.jpeg'),
+('Pempek Lenjer Panjang', 'Lenjer', 15000, 'Pempek lenjer khas dengan ukuran panjang, gurih nian.', 'assets/pempek_lenjer.jpg'),
+('Pempek Adaan Bulat', 'Adaan', 4000, 'Pempek bulat dengan bumbu bawang gurih.', 'assets/pempek_adaan.jpg'),
+('Pempek Kulit Crispy', 'Kulit', 4000, 'Pempek berbahan dasar kulit ikan yang digoreng garing.', 'assets/pempek_kulit.jpg'),
+('Pempek Lenggang', 'Lenggang', 16000, 'Pempek panggang dadar telur yang harum.', 'assets/pempek_lenggang.jpg'),
+('Pempek Keriting', 'Keriting', 4000, 'Pempek keriting rebus yang lezat.', 'assets/pempek_keriting.jpg'),
+('Paket Hemat Wong Kito', 'Paket Hemat', 50000, 'Paket campur pempek isi 12 pcs bonus cuko kental.', 'assets/paket_hemat.jpg')
+ON DUPLICATE KEY UPDATE `nama`=`nama`;
 
 -- --------------------------------------------------------
 -- Table: pesanan
