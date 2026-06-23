@@ -10,7 +10,7 @@
                 </p>
             </div>
             <div class="col-lg-7 text-center text-lg-end position-relative">
-                <img src="assets\banner.jpg" 
+                <img src="assets/banner.jpg" 
                      alt="Pempek Plate" 
                      class="img-fluid object-fit-cover shadow-lg border border-4 border-opacity-10 border-white" 
                      style="width: 520px; height: 380px; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;">
@@ -31,7 +31,7 @@
                         <?php
                         if (!function_exists('check_active')) {
                             function check_active($value) {
-                                if (isset($_GET['kat']) && in_array($value, $_GET['kat'])) {
+                                if (isset($_GET['kat']) && is_array($_GET['kat']) && in_array($value, $_GET['kat'])) {
                                     echo 'checked';
                                 }
                             }
@@ -76,7 +76,7 @@
                 <?php else: ?>
                     <?php foreach ($produk_list as $produk): ?>
                         <?php 
-                        $kategori_dipilih = isset($_GET['kat']) ? $_GET['kat'] : [];
+                        $kategori_dipilih = isset($_GET['kat']) && is_array($_GET['kat']) ? $_GET['kat'] : [];
 
                         if (strpos(strtolower($produk['nama']), 'paket keluarga') !== false || strpos(strtolower($produk['nama']), 'paket hemat') !== false) {
                             if (!in_array('Paket Hemat', $kategori_dipilih)) {
@@ -86,28 +86,28 @@
 
                         $gambar_tampil = $produk['foto']; 
 
-                        if (strpos(strtolower($produk['nama']), 'kapal selam') !== false) {
-                            $gambar_tampil = "assets\kapal_selam.jpeg"; 
-                        } 
-                        elseif (strpos(strtolower($produk['nama']), 'lenjer') !== false) {
-                            $gambar_tampil = "assets\pempek_lenjer.jpg"; 
-                        } 
-                        elseif (strpos(strtolower($produk['nama']), 'adaan') !== false) {
-                            $gambar_tampil = "assets\pempek_adaan.jpg"; 
-                        } 
-                        elseif (strpos(strtolower($produk['nama']), 'kulit') !== false) {
-                            $gambar_tampil = "assets\pempek_kulit.jpg"; 
-                        }
-                        elseif (strpos(strtolower($produk['nama']), 'lenggang') !== false) {
-                            $gambar_tampil = "assets\pempek_lenggang.jpg"; 
-                        }
-                        elseif (strpos(strtolower($produk['nama']), 'keriting') !== false) {
-                            $gambar_tampil = "assets\pempek_keriting.jpg"; 
-                        }
-                        elseif (strpos(strtolower($produk['nama']), 'paket hemat') !== false || strpos(strtolower($produk['nama']), 'paket keluarga') !== false) {
-                            $gambar_tampil = "assets\paket_hemat.jpg"; 
-                        }
-                        ?>
+                                                if (strpos(strtolower($produk['nama']), 'kapal selam') !== false) {
+                                                    $gambar_tampil = "assets/kapal_selam.jpeg"; 
+                                                } 
+                                                elseif (strpos(strtolower($produk['nama']), 'lenjer') !== false) {
+                                                    $gambar_tampil = "assets/pempek_lenjer.jpg"; 
+                                                } 
+                                                elseif (strpos(strtolower($produk['nama']), 'adaan') !== false) {
+                                                    $gambar_tampil = "assets/pempek_adaan.jpg"; 
+                                                } 
+                                                elseif (strpos(strtolower($produk['nama']), 'kulit') !== false) {
+                                                    $gambar_tampil = "assets/pempek_kulit.jpg"; 
+                                                }
+                                                elseif (strpos(strtolower($produk['nama']), 'lenggang') !== false) {
+                                                    $gambar_tampil = "assets/pempek_lenggang.jpg"; 
+                                                }
+                                                elseif (strpos(strtolower($produk['nama']), 'keriting') !== false) {
+                                                    $gambar_tampil = "assets/pempek_keriting.jpg"; 
+                                                }
+                                                elseif (strpos(strtolower($produk['nama']), 'paket hemat') !== false || strpos(strtolower($produk['nama']), 'paket keluarga') !== false) {
+                                                    $gambar_tampil = "assets/paket_hemat.jpg"; 
+                                                }
+                                                ?>
 
                         <div class="col-md-4 col-sm-6">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-menu bg-white">
@@ -161,6 +161,36 @@
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+            
+            <!-- Pagination Widget -->
+            <?php if ($total_pages > 1): ?>
+                <nav class="mt-5 d-flex justify-content-center">
+                    <ul class="pagination">
+                        <?php if ($page > 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?p=<?= $page - 1 ?><?= isset($_GET['kat']) ? '&' . http_build_query(['kat' => $_GET['kat']]) : '' ?>" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?= $page == $i ? 'active' : '' ?>">
+                                <a class="page-link" href="?p=<?= $i ?><?= isset($_GET['kat']) ? '&' . http_build_query(['kat' => $_GET['kat']]) : '' ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        
+                        <?php if ($page < $total_pages): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?p=<?= $page + 1 ?><?= isset($_GET['kat']) ? '&' . http_build_query(['kat' => $_GET['kat']]) : '' ?>" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+            <?php endif; ?>
+
         </div>
 
     </div>

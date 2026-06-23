@@ -92,10 +92,10 @@
                         $link_wa = "https://wa.me/62895379788123?text=" . urlencode($text_wa);
                     ?>
                     
-                    <a href="<?= $link_wa; ?>" target="_blank" class="btn btn-success w-100 fw-bold py-3 rounded-3 shadow mb-2 d-flex justify-content-center align-items-center gap-2">
-                         Pesan Lewat WhatsApp
+                    <a href="checkout.php" class="btn btn-success w-100 fw-bold py-3 rounded-3 shadow mb-2 d-flex justify-content-center align-items-center gap-2">
+                         Proses ke Checkout 🛒
                     </a>
-                    <p class="text-center text-muted small m-0" style="font-size: 11px;">Anda akan diarahkan ke WhatsApp untuk konfirmasi alamat pengiriman.</p>
+                    <p class="text-center text-muted small m-0" style="font-size: 11px;">Isi data pengiriman & konfirmasi pesanan secara instan.</p>
                 </div>
             </div>
         </div>

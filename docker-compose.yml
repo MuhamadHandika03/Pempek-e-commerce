@@ -1,0 +1,65 @@
+services:
+  web:
+    build: .
+    container_name: pempek_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount source code for live editing
+      - .:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pempek-network
+
+  db:
+    image: mysql:8.0
+    container_name: pempek_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: db_pempek
+      MYSQL_USER: pempek_user
+      MYSQL_PASSWORD: pempek_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      # Initialize database with schema + seed data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      # Persist MySQL data between restarts
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - pempek-network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: pempek_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pempek-network
+
+networks:
+  pempek-network:
+    driver: bridge
+
+volumes:
+  db_data:

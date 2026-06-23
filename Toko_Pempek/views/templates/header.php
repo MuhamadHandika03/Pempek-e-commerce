@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Pempek Wong Kito'; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
@@ -38,20 +39,23 @@
                 <span class="me-2">🍢</span> Pempek Wong Kito
             </a>
             
-            <button class="navbar-expand navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto gap-3 text-white">
                     <li class="nav-item"><a class="nav-link text-white active fw-medium" href="index.php">Menu</a></li>
-                    <li class="nav-item"><a class="nav-link text-white-50" href="#">Paket Hemat</a></li>
-                    <li class="nav-item"><a class="nav-link text-white-50" href="#">Tentang Kami</a></li>
-                    <li class="nav-item"><a class="nav-link text-white-50" href="#">Kontak</a></li>
+                    <li class="nav-item"><a class="nav-link text-white-50" href="index.php?kat[]=Paket+Hemat">Paket Hemat</a></li>
+                    <li class="nav-item"><a class="nav-link text-white-50" href="about.php">Tentang Kami</a></li>
+                    <li class="nav-item"><a class="nav-link text-white-50" href="contact.php">Kontak</a></li>
                 </ul>
-                <div class="ms-auto">
+                <div class="ms-auto d-flex gap-2">
                     <a href="keranjang.php" class="btn btn-gold rounded-3 px-3 py-2 d-flex align-items-center gap-2">
                         Keranjang Belanja 🛒 (<?= hitung_total_item(); ?>)
+                    </a>
+                    <a href="admin/index.php" class="btn btn-outline-light rounded-3 px-3 py-2">
+                        <i class="bi bi-person-lock"></i> Admin
                     </a>
                 </div>
             </div>
