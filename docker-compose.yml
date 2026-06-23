@@ -10,6 +10,10 @@ services:
       - .:/var/www/html
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html
+      - DB_HOST=db
+      - DB_USER=pempek_user
+      - DB_PASS=pempek_pass
+      - DB_NAME=db_pempek
     depends_on:
       db:
         condition: service_healthy
