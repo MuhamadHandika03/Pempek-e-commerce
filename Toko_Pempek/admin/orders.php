@@ -30,15 +30,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Filter
 $filter = $_GET['status'] ?? '';
-$where = $filter ? "WHERE p.status = '$filter'" : '';
-$orders = $conn->query("
-    SELECT p.*, COUNT(pd.id) as item_count 
-    FROM pesanan p 
-    LEFT JOIN pesanan_detail pd ON pd.pesanan_id = p.id 
-    $where
-    GROUP BY p.id 
-    ORDER BY p.created_at DESC
-")->fetchAll(PDO::FETCH_ASSOC);
+$allowed_statuses = ['menunggu', 'dikonfirmasi', 'diproses', 'siap', 'diambil', 'batal'];
+$orders = [];
+if ($filter && in_array($filter, $allowed_statuses)) {
+    $stmt = $conn->prepare("
+        SELECT p.*, COUNT(pd.id) as item_count 
+        FROM pesanan p 
+        LEFT JOIN pesanan_detail pd ON pd.pesanan_id = p.id 
+        WHERE p.status = ?
+        GROUP BY p.id 
+        ORDER BY p.created_at DESC
+    ");
+    $stmt->execute([$filter]);
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $filter = '';
+    $orders = $conn->query("
+        SELECT p.*, COUNT(pd.id) as item_count 
+        FROM pesanan p 
+        LEFT JOIN pesanan_detail pd ON pd.pesanan_id = p.id 
+        GROUP BY p.id 
+        ORDER BY p.created_at DESC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+}
 
 // Detail pesanan (modal)
 $detail = null;
