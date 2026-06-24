@@ -50,12 +50,28 @@
                     <li class="nav-item"><a class="nav-link text-white-50" href="about.php">Tentang Kami</a></li>
                     <li class="nav-item"><a class="nav-link text-white-50" href="contact.php">Kontak</a></li>
                 </ul>
-                <div class="ms-auto d-flex gap-2">
+                <div class="ms-auto d-flex gap-2 align-items-center">
                     <a href="keranjang.php" class="btn btn-gold rounded-3 px-3 py-2 d-flex align-items-center gap-2">
                         Keranjang Belanja 🛒 (<?= hitung_total_item(); ?>)
                     </a>
-                    <a href="admin/index.php" class="btn btn-outline-light rounded-3 px-3 py-2">
-                        <i class="bi bi-person-lock"></i> Admin
+                    
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle rounded-3 px-3 py-2" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i> <?= htmlspecialchars($_SESSION['user_nama']) ?>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                <li><a class="dropdown-item py-2" href="logout.php"><i class="bi bi-box-arrow-right me-2 text-danger"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    <?php else: ?>
+                        <a href="login.php" class="btn btn-outline-light rounded-3 px-3 py-2">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    <?php endif; ?>
+                    
+                    <a href="admin/index.php" class="btn btn-outline-light rounded-3 px-3 py-2" title="Admin Panel">
+                        <i class="bi bi-person-lock"></i>
                     </a>
                 </div>
             </div>

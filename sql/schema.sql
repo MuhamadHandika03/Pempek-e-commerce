@@ -47,10 +47,25 @@ INSERT INTO `produk` (`nama`, `kategori`, `harga`, `deskripsi`, `foto`) VALUES
 ON DUPLICATE KEY UPDATE `nama`=`nama`;
 
 -- --------------------------------------------------------
+-- Table: pelanggan
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pelanggan` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(100) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
+  `nama` varchar(100) NOT NULL,
+  `no_hp` varchar(20) DEFAULT NULL,
+  `alamat` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
 -- Table: pesanan
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pesanan` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pelanggan_id` int(11) DEFAULT NULL,
   `nama_pemesan` varchar(100) NOT NULL,
   `no_hp` varchar(20) NOT NULL,
   `alamat` text NOT NULL,
@@ -60,7 +75,8 @@ CREATE TABLE IF NOT EXISTS `pesanan` (
   `catatan` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`pelanggan_id`) REFERENCES `pelanggan` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------

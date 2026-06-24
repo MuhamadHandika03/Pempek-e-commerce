@@ -13,9 +13,21 @@ $error = '';
 $success = false;
 $order_id = 0;
 $total_belanja = 0;
-
 foreach ($_SESSION['cart'] as $id => $item) {
     $total_belanja += $item['harga'] * $item['jumlah'];
+}
+
+// Auto-fill dari profil jika sudah login
+$prefill = ['nama' => '', 'no_hp' => '', 'alamat' => ''];
+if (isset($_SESSION['user_id'])) {
+    $stmt = $conn->prepare("SELECT nama, no_hp, alamat FROM pelanggan WHERE id=?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($profile) {
+        $prefill['nama'] = $profile['nama'];
+        $prefill['no_hp'] = $profile['no_hp'] ?? '';
+        $prefill['alamat'] = $profile['alamat'] ?? '';
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -35,11 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->beginTransaction();
 
             // Insert ke pesanan
+            $pelanggan_id = $_SESSION['user_id'] ?? null;
             $stmt = $conn->prepare("
-                INSERT INTO pesanan (nama_pemesan, no_hp, alamat, metode_pembayaran, status, total_harga, catatan)
-                VALUES (?, ?, ?, ?, 'menunggu', ?, ?)
+                INSERT INTO pesanan (pelanggan_id, nama_pemesan, no_hp, alamat, metode_pembayaran, status, total_harga, catatan)
+                VALUES (?, ?, ?, ?, ?, 'menunggu', ?, ?)
             ");
-            $stmt->execute([$nama, $no_hp, $alamat, $pembayaran, $total_belanja, $catatan]);
+            $stmt->execute([$pelanggan_id, $nama, $no_hp, $alamat, $pembayaran, $total_belanja, $catatan]);
             $order_id = $conn->lastInsertId();
 
             // Insert detail pesanan
@@ -116,15 +129,15 @@ include 'views/templates/header.php';
                         <?= get_csrf_input() ?>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Nama Penerima *</label>
-                            <input type="text" name="nama_pemesan" class="form-control rounded-3" placeholder="Nama lengkap Anda" required>
+                            <input type="text" name="nama_pemesan" class="form-control rounded-3" placeholder="Nama lengkap Anda" value="<?= htmlspecialchars($prefill['nama']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">No. WhatsApp / HP *</label>
-                            <input type="text" name="no_hp" class="form-control rounded-3" placeholder="Contoh: 08123456789" required>
+                            <input type="text" name="no_hp" class="form-control rounded-3" placeholder="Contoh: 08123456789" value="<?= htmlspecialchars($prefill['no_hp']) ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Alamat Lengkap Pengiriman *</label>
-                            <textarea name="alamat" class="form-control rounded-3" rows="3" placeholder="Nama jalan, nomor rumah, RT/RW, kecamatan, kota" required></textarea>
+                            <textarea name="alamat" class="form-control rounded-3" rows="3" placeholder="Nama jalan, nomor rumah, RT/RW, kecamatan, kota" required><?= htmlspecialchars($prefill['alamat']) ?></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Metode Pembayaran *</label>
