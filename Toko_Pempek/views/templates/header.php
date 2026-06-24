@@ -69,10 +69,6 @@
                             <i class="bi bi-box-arrow-in-right"></i> Login
                         </a>
                     <?php endif; ?>
-                    
-                    <a href="admin/index.php" class="btn btn-outline-light rounded-3 px-3 py-2" title="Admin Panel">
-                        <i class="bi bi-person-lock"></i>
-                    </a>
                 </div>
             </div>
         </div>
