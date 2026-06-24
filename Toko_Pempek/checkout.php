@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $no_hp = trim($_POST['no_hp'] ?? '');
     $alamat = trim($_POST['alamat'] ?? '');
     $pembayaran = $_POST['metode_pembayaran'] ?? 'cod';
+    $pengiriman = $_POST['pengiriman'] ?? 'diantar';
     $catatan = trim($_POST['catatan'] ?? '');
 
     if (empty($nama) || empty($no_hp) || empty($alamat)) {
@@ -49,10 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Insert ke pesanan
             $pelanggan_id = $_SESSION['user_id'] ?? null;
             $stmt = $conn->prepare("
-                INSERT INTO pesanan (pelanggan_id, nama_pemesan, no_hp, alamat, metode_pembayaran, status, total_harga, catatan)
-                VALUES (?, ?, ?, ?, ?, 'menunggu', ?, ?)
+                INSERT INTO pesanan (pelanggan_id, nama_pemesan, no_hp, alamat, metode_pembayaran, metode_pengiriman, status, total_harga, catatan)
+                VALUES (?, ?, ?, ?, ?, ?, 'menunggu', ?, ?)
             ");
-            $stmt->execute([$pelanggan_id, $nama, $no_hp, $alamat, $pembayaran, $total_belanja, $catatan]);
+            $stmt->execute([$pelanggan_id, $nama, $no_hp, $alamat, $pembayaran, $pengiriman, $total_belanja, $catatan]);
             $order_id = $conn->lastInsertId();
 
             // Insert detail pesanan
@@ -72,6 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $subtotal
                 ]);
             }
+
+            // Simpan backup keranjang untuk WA karena $_SESSION['cart'] akan dikosongkan
+            $_SESSION['checkout_cart_backup'] = $_SESSION['cart'];
 
             $conn->commit();
             
@@ -101,12 +105,38 @@ include 'views/templates/header.php';
                     <p class="text-secondary">Terima kasih telah memesan di Pempek Wong Kito. Kasir kami akan segera memverifikasi pesanan Anda.</p>
                     
                     <?php
-                    // Buka WhatsApp Otomatis dengan format ringkas
-                    $text_wa = "Halo Pempek Wong Kito, saya baru saja melakukan pemesanan website.\n";
-                    $text_wa .= "*Nomor Pesanan:* #" . str_pad($order_id, 4, '0', STR_PAD_LEFT) . "\n";
-                    $text_wa .= "*Nama:* " . $nama . "\n";
-                    $text_wa .= "*Total:* Rp " . number_format($total_belanja, 0, ',', '.') . "\n\n";
-                    $text_wa .= "Mohon segera diproses ya. Terima kasih! 🙏";
+                    // Label metode pembayaran
+                    $label_bayar = [
+                        'cod' => 'Bayar di Tempat (COD)',
+                        'transfer' => 'Transfer Bank',
+                        'qris' => 'QRIS / E-Wallet'
+                    ];
+                    $label_kirim = [
+                        'diantar' => 'Di Antar (Delivery)',
+                        'ambil_sendiri' => 'Ambil Sendiri (Pickup)'
+                    ];
+                    $metode_bayar = $label_bayar[$pembayaran] ?? $pembayaran;
+                    $metode_kirim = $label_kirim[$pengiriman] ?? $pengiriman;
+
+            // Detail item pesanan untuk WA
+            $detail_items = "";
+            $cart_data = isset($_SESSION['checkout_cart_backup']) ? $_SESSION['checkout_cart_backup'] : [];
+            foreach ($cart_data as $item) {
+                $sub = $item['harga'] * $item['jumlah'];
+                $detail_items .= "- {$item['nama']} x{$item['jumlah']} = Rp " . number_format($sub, 0, ',', '.') . "\n";
+            }
+
+                    $text_wa = "*PEMESANAN WEBSITE - PEMPEK WONG KITO*\n\n";
+                    $text_wa .= "*No. Pesanan:* #" . str_pad($order_id, 4, '0', STR_PAD_LEFT) . "\n";
+                    $text_wa .= "*Nama:* {$nama}\n";
+                    $text_wa .= "*No. HP:* {$no_hp}\n";
+                    $text_wa .= "*Alamat:* {$alamat}\n";
+                    $text_wa .= "*Metode Kirim:* {$metode_kirim}\n";
+                    $text_wa .= "*Metode Bayar:* {$metode_bayar}\n";
+                    $text_wa .= "\n*Detail Pesanan:*\n{$detail_items}\n";
+                    $text_wa .= "*TOTAL:* Rp " . number_format($total_belanja, 0, ',', '.') . "\n";
+                    if ($catatan) $text_wa .= "*Catatan:* {$catatan}\n";
+                    $text_wa .= "\nMohon segera diproses ya. Terima kasih! 🙏";
                     $link_wa = "https://wa.me/62895379788123?text=" . urlencode($text_wa);
                     ?>
 
@@ -136,19 +166,48 @@ include 'views/templates/header.php';
                             <input type="text" name="no_hp" class="form-control rounded-3" placeholder="Contoh: 08123456789" value="<?= htmlspecialchars($prefill['no_hp']) ?>" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Alamat Lengkap Pengiriman *</label>
-                            <textarea name="alamat" class="form-control rounded-3" rows="3" placeholder="Nama jalan, nomor rumah, RT/RW, kecamatan, kota" required><?= htmlspecialchars($prefill['alamat']) ?></textarea>
+                            <label class="form-label small fw-bold">Alamat Lengkap Pengiriman (Isi '-' jika ambil sendiri) *</label>
+                            <textarea id="alamatInput" name="alamat" class="form-control rounded-3" rows="3" placeholder="Nama jalan, nomor rumah, RT/RW, kecamatan, kota" required><?= htmlspecialchars($prefill['alamat']) ?></textarea>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Metode Pengiriman *</label>
+                            <div class="d-flex gap-4 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pengiriman" value="diantar" id="shipDelivery" checked onchange="toggleAlamat(this.value)">
+                                    <label class="form-check-label" for="shipDelivery">Di Antar (Delivery)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="pengiriman" value="ambil_sendiri" id="shipPickup" onchange="toggleAlamat(this.value)">
+                                    <label class="form-check-label" for="shipPickup">Ambil Sendiri (Pickup)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            function toggleAlamat(val) {
+                                const alamat = document.getElementById('alamatInput');
+                                if(val === 'ambil_sendiri'){
+                                    alamat.value = '-';
+                                    alamat.readOnly = true;
+                                } else {
+                                    alamat.value = '<?= htmlspecialchars($prefill['alamat']) ?>';
+                                    alamat.readOnly = false;
+                                }
+                            }
+                        </script>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Metode Pembayaran *</label>
                             <div class="d-flex gap-4 mt-2">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="metode_pembayaran" value="cod" id="payCod" checked>
-                                    <label class="form-check-label" for="payCod">Cash on Delivery (COD)</label>
+                                    <label class="form-check-label" for="payCod">Bayar di Tempat (COD/Kasir)</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="metode_pembayaran" value="transfer" id="payTf">
                                     <label class="form-check-label" for="payTf">Transfer Bank</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="qris" id="payQris">
+                                    <label class="form-check-label" for="payQris">QRIS / E-Wallet</label>
                                 </div>
                             </div>
                         </div>
