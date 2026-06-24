@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `pesanan` (
   `no_hp` varchar(20) NOT NULL,
   `alamat` text NOT NULL,
   `metode_pembayaran` varchar(20) NOT NULL,
+  `metode_pengiriman` varchar(20) NOT NULL DEFAULT 'diantar',
   `status` enum('menunggu','dikonfirmasi','diproses','siap','diambil','batal') NOT NULL DEFAULT 'menunggu',
   `total_harga` int(11) NOT NULL,
   `catatan` text DEFAULT NULL,
