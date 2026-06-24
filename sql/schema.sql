@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
 
 -- Seed default admin account (username: admin, password: admin123)
 INSERT INTO `admin_users` (`username`, `password`, `nama`, `level`) 
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Pemilik Toko', 'owner')
-ON DUPLICATE KEY UPDATE `username`=`username`;
+VALUES ('admin', '$2y$10$CVuWKZOMqY.yWL/jitJAtug72gPKT.pDb8X9sRtw3CTsLHUsh8hka', 'Pemilik Toko', 'owner')
+ON DUPLICATE KEY UPDATE `password`='$2y$10$CVuWKZOMqY.yWL/jitJAtug72gPKT.pDb8X9sRtw3CTsLHUsh8hka';
 
 -- --------------------------------------------------------
 -- Table: produk
