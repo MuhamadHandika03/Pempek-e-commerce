@@ -36,19 +36,19 @@
                                     $total_belanja += $subtotal;
                                     
                                     // Membuat draf teks pesanan untuk WhatsApp
-                                    $text_wa .= "- " . $item['nama'] . " (" . $item['jumlah'] . "x) : " . rupiah($subtotal) . "\n";
+                                    $text_wa .= "- " . $item['nama'] . " (" . $item['jumlah'] . "x) : " . format_rupiah($subtotal) . "\n";
                                 ?>
                                     <tr class="border-bottom-dashed">
                                         <td class="py-3">
                                             <span class="fw-bold text-dark d-block"><?= htmlspecialchars($item['nama']); ?></span>
                                         </td>
-                                        <td class="text-center text-muted"><?= rupiah($item['harga']); ?></td>
+                                        <td class="text-center text-muted"><?= format_rupiah($item['harga']); ?></td>
                                         <td class="text-center">
                                             <span class="badge bg-light text-dark border px-3 py-2 fs-6 rounded-3"><?= $item['jumlah']; ?></span>
                                         </td>
-                                        <td class="text-end fw-bold text-danger"><?= rupiah($subtotal); ?></td>
+                                        <td class="text-end fw-bold text-danger"><?= format_rupiah($subtotal); ?></td>
                                         <td class="text-center">
-                                            <a href="keranjang.php?action=delete&id=<?= $id; ?>" class="text-decoration-none text-muted hover-danger fs-5">×</a>
+                                            <a href="keranjang.php?action=delete&id=<?= (int)$id; ?>" class="text-decoration-none text-muted hover-danger fs-5">×</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -83,13 +83,13 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <span class="text-muted font-weight-medium">Total Pembayaran:</span>
-                        <span class="fw-extrabold fs-4 text-danger"><?= rupiah($total_belanja); ?></span>
+                        <span class="fw-extrabold fs-4 text-danger"><?= format_rupiah($total_belanja); ?></span>
                     </div>
 
                     <?php 
                         // Selesaikan pembentukan link teks WA
-                        $text_wa .= "\nTotal Belanja: " . rupiah($total_belanja);
-                        $link_wa = "https://wa.me/62895379788123?text=" . urlencode($text_wa);
+                        $text_wa .= "\nTotal Belanja: " . format_rupiah($total_belanja);
+                        $link_wa = "https://wa.me/" . WA_NUMBER . "?text=" . urlencode($text_wa);
                     ?>
                     
                     <a href="checkout.php" class="btn btn-success w-100 fw-bold py-3 rounded-3 shadow mb-2 d-flex justify-content-center align-items-center gap-2">

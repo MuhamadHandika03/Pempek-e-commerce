@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $error = 'Username dan password wajib diisi.';
     } else {
-        $stmt = $conn->prepare("SELECT * FROM admin_users WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, username, password, nama, level FROM admin_users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

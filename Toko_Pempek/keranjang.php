@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'config/database.php';
+require_once 'config/app.php';
 require_once 'core/Functions.php';
 
 if (isset($_GET['action']) && $_GET['action'] == 'delete') {

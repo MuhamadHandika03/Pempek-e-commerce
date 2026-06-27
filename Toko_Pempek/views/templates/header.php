@@ -45,10 +45,10 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto gap-3 text-white">
-                    <li class="nav-item"><a class="nav-link text-white active fw-medium" href="index.php">Menu</a></li>
-                    <li class="nav-item"><a class="nav-link text-white-50" href="index.php?kat[]=Paket+Hemat">Paket Hemat</a></li>
-                    <li class="nav-item"><a class="nav-link text-white-50" href="about.php">Tentang Kami</a></li>
-                    <li class="nav-item"><a class="nav-link text-white-50" href="contact.php">Kontak</a></li>
+                    <li class="nav-item"><a class="nav-link <?= (basename($_SERVER['SCRIPT_NAME']) === 'index.php' && (!isset($_GET['kat']) || !in_array('Paket Hemat', (array)$_GET['kat']))) ? 'text-white active fw-medium' : 'text-white-50' ?>" href="index.php">Menu</a></li>
+                    <li class="nav-item"><a class="nav-link <?= (basename($_SERVER['SCRIPT_NAME']) === 'index.php' && isset($_GET['kat']) && (in_array('Paket Hemat', (array)$_GET['kat']))) ? 'text-white active fw-medium' : 'text-white-50' ?>" href="index.php?kat[]=Paket+Hemat">Paket Hemat</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'about.php' ? 'text-white active fw-medium' : 'text-white-50' ?>" href="about.php">Tentang Kami</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['SCRIPT_NAME']) === 'contact.php' ? 'text-white active fw-medium' : 'text-white-50' ?>" href="contact.php">Kontak</a></li>
                 </ul>
                 <div class="ms-auto d-flex gap-2 align-items-center">
                     <a href="keranjang.php" class="btn btn-gold rounded-3 px-3 py-2 d-flex align-items-center gap-2">
@@ -61,6 +61,9 @@
                                 <i class="bi bi-person-circle me-1"></i> <?= htmlspecialchars($_SESSION['user_nama']) ?>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                <li><a class="dropdown-item py-2" href="profil.php"><i class="bi bi-person me-2"></i>Profil Saya</a></li>
+                                <li><a class="dropdown-item py-2" href="profil.php?tab=pesanan"><i class="bi bi-receipt me-2"></i>Riwayat Pesanan</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item py-2" href="logout.php"><i class="bi bi-box-arrow-right me-2 text-danger"></i>Logout</a></li>
                             </ul>
                         </div>

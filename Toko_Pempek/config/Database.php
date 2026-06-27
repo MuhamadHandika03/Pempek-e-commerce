@@ -2,10 +2,10 @@
 // session_start() dipindahkan ke setiap file yang membutuhkannya
 // (index.php, keranjang.php, checkout.php) untuk menghindari duplicate call
 
-$host     = getenv('DB_HOST') ?: 'db';
-$username = getenv('DB_USER') ?: 'pempek_user';
-$password = getenv('DB_PASS') ?: 'pempek_pass';
-$database = getenv('DB_NAME') ?: 'db_pempek';
+$host     = getenv('DB_HOST')     ?: throw new RuntimeException('DB_HOST not set in .env');
+$username = getenv('DB_USER')     ?: throw new RuntimeException('DB_USER not set in .env');
+$password = getenv('DB_PASS')     ?: throw new RuntimeException('DB_PASS not set in .env');
+$database = getenv('DB_NAME')     ?: throw new RuntimeException('DB_NAME not set in .env');
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$database", $username, $password);
@@ -15,7 +15,8 @@ try {
 }
 
 // Konfigurasi Pagination
-$limit = 9;
+define('ITEMS_PER_PAGE', 9);
+$limit = ITEMS_PER_PAGE;
 $page = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
 $offset = ($page - 1) * $limit;
 

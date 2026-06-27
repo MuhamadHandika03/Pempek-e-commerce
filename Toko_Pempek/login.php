@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = 'Email dan Password wajib diisi.';
     } else {
-        $stmt = $conn->prepare("SELECT * FROM pelanggan WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id, email, password, nama FROM pelanggan WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -35,12 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upd->execute([$new_hash, $user['id']]);
             }
             
-            // Redirect checkout jika keranjang ada isi, jika tidak ke home
-            if (!empty($_SESSION['cart'])) {
-                header('Location: keranjang.php');
-            } else {
-                header('Location: index.php');
-            }
+            // Redirect: ke halaman asal (redirect param) atau keranjang atau home
+            $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? ($_SESSION['cart'] ? 'keranjang.php' : 'index.php');
+            header('Location: ' . $redirect);
             exit;
         } else {
             $error = 'Email atau password salah!';
@@ -65,6 +62,7 @@ include 'views/templates/header.php';
                     <?php endif; ?>
                     
                     <form method="POST" autocomplete="off">
+                        <?php if (isset($_GET['redirect'])): ?><input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect']) ?>"><?php endif; ?>
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Email</label>
                             <input type="email" name="email" class="form-control form-control-lg fs-6" placeholder="Masukkan email" required autofocus>

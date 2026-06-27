@@ -2,6 +2,7 @@
 session_start();
 require_once 'config/database.php';
 require_once 'core/Functions.php';
+require_once 'core/Auth.php';
 
 // Jika sudah login, lempar ke beranda
 if (isset($_SESSION['user_id'])) {
@@ -12,7 +13,10 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 $success = '';
 
+generate_csrf_token();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_validate_post();
     $nama = trim($_POST['nama'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -62,6 +66,7 @@ include 'views/templates/header.php';
                         <div class="text-center mt-3"><a href="login.php" class="btn btn-outline-danger w-100">Menuju Halaman Login</a></div>
                     <?php else: ?>
                         <form method="POST" autocomplete="off">
+                            <?= get_csrf_input() ?>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted">Nama Lengkap <span class="text-danger">*</span></label>
                                 <input type="text" name="nama" class="form-control" placeholder="Nama Anda" required>

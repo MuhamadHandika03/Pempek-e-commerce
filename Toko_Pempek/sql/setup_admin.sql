@@ -6,6 +6,18 @@
 CREATE DATABASE IF NOT EXISTS db_pempek;
 USE db_pempek;
 
+-- Table: pelanggan (customer accounts)
+CREATE TABLE IF NOT EXISTS pelanggan (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    nama VARCHAR(100) NOT NULL,
+    no_hp VARCHAR(20),
+    alamat TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Table: admin_users
 CREATE TABLE IF NOT EXISTS admin_users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,15 +51,18 @@ CREATE TABLE IF NOT EXISTS produk (
 -- Table: pesanan (orders dari customer)
 CREATE TABLE IF NOT EXISTS pesanan (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    pelanggan_id INT,
     nama_pemesan VARCHAR(100) NOT NULL,
     no_hp VARCHAR(20) NOT NULL,
     alamat TEXT,
-    metode_pembayaran ENUM('cod', 'transfer') DEFAULT 'cod',
+    metode_pembayaran ENUM('cod', 'transfer', 'qris') DEFAULT 'cod',
+    metode_pengiriman ENUM('diantar', 'ambil_sendiri') DEFAULT 'diantar',
     status ENUM('menunggu', 'dikonfirmasi', 'diproses', 'siap', 'diambil', 'batal') DEFAULT 'menunggu',
     total_harga INT NOT NULL,
     catatan TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (pelanggan_id) REFERENCES pelanggan(id) ON DELETE SET NULL
 );
 
 -- Table: pesanan_detail (item per pesanan)
@@ -59,8 +74,19 @@ CREATE TABLE IF NOT EXISTS pesanan_detail (
     harga_saat_pesan INT NOT NULL,
     jumlah INT NOT NULL,
     subtotal INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pesanan_id) REFERENCES pesanan(id) ON DELETE CASCADE,
     FOREIGN KEY (produk_id) REFERENCES produk(id) ON DELETE SET NULL
+);
+
+-- Table: messages (contact form)
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(100) NOT NULL,
+    kontak VARCHAR(100) NOT NULL,
+    pesan TEXT NOT NULL,
+    dibaca TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert sample menu

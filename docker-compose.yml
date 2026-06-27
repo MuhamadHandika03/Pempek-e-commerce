@@ -9,7 +9,7 @@ services:
       # Mount source code for live editing
       - .:/var/www/html
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html
+      - APACHE_DOCUMENT_ROOT=/var/www/html/Toko_Pempek
       - DB_HOST=db
       - DB_USER=pempek_user
       - DB_PASS=pempek_pass
@@ -33,7 +33,7 @@ services:
       - "3307:3306"
     volumes:
       # Initialize database with schema + seed data
-      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./sql/setup_admin.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       # Persist MySQL data between restarts
       - db_data:/var/lib/mysql
     healthcheck:

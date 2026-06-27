@@ -28,15 +28,6 @@
                 
                 <form action="index.php" method="GET" id="filterForm">
                     <div class="d-flex flex-column gap-3">
-                        <?php
-                        if (!function_exists('check_active')) {
-                            function check_active($value) {
-                                if (isset($_GET['kat']) && is_array($_GET['kat']) && in_array($value, $_GET['kat'])) {
-                                    echo 'checked';
-                                }
-                            }
-                        }
-                        ?>
                         <div class="form-check">
                             <input class="form-check-input custom-checkbox" type="checkbox" name="kat[]" value="Kapal Selam" id="kat1" <?= check_active('Kapal Selam'); ?>>
                             <label class="form-check-label text-secondary fw-medium" for="kat1">Pempek Kapal Selam</label>

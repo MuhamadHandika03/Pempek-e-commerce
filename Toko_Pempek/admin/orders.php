@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once '../core/Functions.php';
 require_once '../core/Auth.php';
 require_login();
 
@@ -87,10 +88,10 @@ render_admin_header('Pesanan', 'orders');
 
     <!-- Filter Status -->
     <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
-        <span class="text-muted small me-1">Filter:</span>
-        <a href="orders.php" class="filter-badge <?= !$filter ? 'active' : '' ?>">Semua</a>
+        <span class="text-muted small me-1"><i class="bi bi-funnel me-1"></i>Filter:</span>
+        <a href="orders.php" class="btn btn-sm rounded-pill px-3 <?= !$filter ? 'btn-dark text-white' : 'btn-outline-secondary' ?>">Semua</a>
         <?php foreach ($status_list as $s): ?>
-            <a href="?status=<?= $s ?>" class="filter-badge <?= $filter === $s ? 'active' : '' ?>">
+            <a href="?status=<?= $s ?>" class="btn btn-sm rounded-pill px-3 <?= $filter === $s ? 'btn-dark text-white' : 'btn-outline-secondary' ?>">
                 <?= ucfirst($s) ?>
             </a>
         <?php endforeach; ?>

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'config/database.php';
+require_once 'config/app.php';
 require_once 'core/Functions.php';
 require_once 'core/Auth.php';
 generate_csrf_token();
@@ -31,6 +32,9 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
+$pembayaran = 'cod'; // default
+$pengiriman = 'diantar';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate_post();
     $nama = trim($_POST['nama_pemesan'] ?? '');
@@ -42,13 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($nama) || empty($no_hp) || empty($alamat)) {
         $error = 'Nama, No. HP, dan Alamat wajib diisi.';
-    } elseif (!preg_match('/^(08|628|\+628)[0-9]{8,13}$/', str_replace(' ', '', $no_hp))) {
+    } elseif (!preg_match('/^(08|628|\\+628)[0-9]{8,13}$/', str_replace(' ', '', $no_hp))) {
         $error = 'Format No. HP tidak valid. Gunakan format angka seperti 08123456789 atau 628123456789.';
     } else {
         try {
             $conn->beginTransaction();
 
-            // Insert ke pesanan
             $pelanggan_id = $_SESSION['user_id'] ?? null;
             $stmt = $conn->prepare("
                 INSERT INTO pesanan (pelanggan_id, nama_pemesan, no_hp, alamat, metode_pembayaran, metode_pengiriman, status, total_harga, catatan)
@@ -57,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$pelanggan_id, $nama, $no_hp, $alamat, $pembayaran, $pengiriman, $total_belanja, $catatan]);
             $order_id = $conn->lastInsertId();
 
-            // Insert detail pesanan
             $stmt_detail = $conn->prepare("
                 INSERT INTO pesanan_detail (pesanan_id, produk_id, nama_produk, harga_saat_pesan, jumlah, subtotal)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -75,18 +77,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
 
-            // Simpan backup keranjang untuk WA karena $_SESSION['cart'] akan dikosongkan
             $_SESSION['checkout_cart_backup'] = $_SESSION['cart'];
-
             $conn->commit();
-            
-            // Bersihkan keranjang
             $_SESSION['cart'] = [];
             $success = true;
 
         } catch (Exception $e) {
             $conn->rollBack();
-            $error = 'Terjadi kesalahan sistem: ' . $e->getMessage();
+            $error = 'Terjadi kesalahan sistem. Silakan hubungi kami jika masalah berlanjut.';
         }
     }
 }
@@ -104,11 +102,33 @@ include 'views/templates/header.php';
                     <h2 class="fw-bold text-dark">Pesanan Berhasil Dikirim!</h2>
                     <p class="text-muted fs-5">Nomor Pesanan Anda: <span class="fw-bold text-danger">#<?= str_pad($order_id, 4, '0', STR_PAD_LEFT) ?></span></p>
                     <p class="text-secondary">Terima kasih telah memesan di Pempek Wong Kito. Kasir kami akan segera memverifikasi pesanan Anda.</p>
-                    
+
+                    <?php if ($pembayaran === 'transfer'): ?>
+                        <div class="alert alert-info text-start mt-3">
+                            <h6 class="fw-bold"><i class="bi bi-bank me-2"></i>Pembayaran Transfer Bank</h6>
+                            <p class="mb-2 small">Silakan transfer ke salah satu rekening berikut:</p>
+                            <table class="table table-sm table-borderless small mb-0">
+                                <tr><td><strong><?= BANK_1_NAMA ?></strong></td><td>a.n. <?= BANK_1_AN ?></td><td class="fw-bold text-end"><?= BANK_1_REK ?></td></tr>
+                                <tr><td><strong><?= BANK_2_NAMA ?></strong></td><td>a.n. <?= BANK_2_AN ?></td><td class="fw-bold text-end"><?= BANK_2_REK ?></td></tr>
+                                <tr><td><strong><?= BANK_3_NAMA ?></strong></td><td>a.n. <?= BANK_3_AN ?></td><td class="fw-bold text-end"><?= BANK_3_REK ?></td></tr>
+                            </table>
+                            <small class="text-muted">Konfirmasi pembayaran via WhatsApp setelah transfer.</small>
+                        </div>
+                    <?php elseif ($pembayaran === 'qris'): ?>
+                        <div class="text-center mt-3">
+                            <h6 class="fw-bold"><i class="bi bi-qr-code me-2"></i>Scan QRIS untuk Bayar</h6>
+                            <img src="<?= QRIS_IMAGE ?>" alt="QRIS Pempek Wong Kito" class="img-fluid border rounded-3 p-2" style="max-width:250px;">
+                            <p class="small text-muted mt-2">Scan QR code di atas menggunakan aplikasi e-Wallet atau Mobile Banking.</p>
+                        </div>
+                    <?php elseif ($pembayaran === 'cod'): ?>
+                        <div class="alert alert-success mt-3">
+                            <i class="bi bi-cash me-2"></i>Bayar langsung di kasir saat mengambil atau menerima pesanan.
+                        </div>
+                    <?php endif; ?>
+
                     <?php
-                    // Label metode pembayaran
                     $label_bayar = [
-                        'cod' => 'Bayar di Tempat (COD)',
+                        'cod' => 'Bayar di Tempat (COD/Kasir)',
                         'transfer' => 'Transfer Bank',
                         'qris' => 'QRIS / E-Wallet'
                     ];
@@ -119,13 +139,12 @@ include 'views/templates/header.php';
                     $metode_bayar = $label_bayar[$pembayaran] ?? $pembayaran;
                     $metode_kirim = $label_kirim[$pengiriman] ?? $pengiriman;
 
-            // Detail item pesanan untuk WA
-            $detail_items = "";
-            $cart_data = isset($_SESSION['checkout_cart_backup']) ? $_SESSION['checkout_cart_backup'] : [];
-            foreach ($cart_data as $item) {
-                $sub = $item['harga'] * $item['jumlah'];
-                $detail_items .= "- {$item['nama']} x{$item['jumlah']} = Rp " . number_format($sub, 0, ',', '.') . "\n";
-            }
+                    $detail_items = "";
+                    $cart_data = isset($_SESSION['checkout_cart_backup']) ? $_SESSION['checkout_cart_backup'] : [];
+                    foreach ($cart_data as $item) {
+                        $sub = $item['harga'] * $item['jumlah'];
+                        $detail_items .= "- {$item['nama']} x{$item['jumlah']} = Rp " . number_format($sub, 0, ',', '.') . "\n";
+                    }
 
                     $text_wa = "*PEMESANAN WEBSITE - PEMPEK WONG KITO*\n\n";
                     $text_wa .= "*No. Pesanan:* #" . str_pad($order_id, 4, '0', STR_PAD_LEFT) . "\n";
@@ -138,7 +157,7 @@ include 'views/templates/header.php';
                     $text_wa .= "*TOTAL:* Rp " . number_format($total_belanja, 0, ',', '.') . "\n";
                     if ($catatan) $text_wa .= "*Catatan:* {$catatan}\n";
                     $text_wa .= "\nMohon segera diproses ya. Terima kasih! 🙏";
-                    $link_wa = "https://wa.me/62895379788123?text=" . urlencode($text_wa);
+                    $link_wa = "https://wa.me/" . WA_NUMBER . "?text=" . urlencode($text_wa);
                     ?>
 
                     <div class="d-flex gap-2 justify-content-center mt-4">
@@ -156,7 +175,7 @@ include 'views/templates/header.php';
                         <div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div>
                     <?php endif; ?>
 
-                    <form method="POST">
+                    <form method="POST" id="checkoutForm">
                         <?= get_csrf_input() ?>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Nama Penerima *</label>
@@ -199,19 +218,45 @@ include 'views/templates/header.php';
                             <label class="form-label small fw-bold">Metode Pembayaran *</label>
                             <div class="d-flex gap-4 mt-2">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="cod" id="payCod" checked>
+                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="cod" id="payCod" checked onchange="toggleBayar(this.value)">
                                     <label class="form-check-label" for="payCod">Bayar di Tempat (COD/Kasir)</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="transfer" id="payTf">
+                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="transfer" id="payTf" onchange="toggleBayar(this.value)">
                                     <label class="form-check-label" for="payTf">Transfer Bank</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="qris" id="payQris">
+                                    <input class="form-check-input" type="radio" name="metode_pembayaran" value="qris" id="payQris" onchange="toggleBayar(this.value)">
                                     <label class="form-check-label" for="payQris">QRIS / E-Wallet</label>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Info Transfer Bank -->
+                        <div id="infoTransfer" class="alert alert-info py-3 d-none">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-bank me-2"></i>Transfer ke Rekening:</h6>
+                            <table class="table table-sm table-borderless small mb-0">
+                                <tr><td><strong>BCA</strong></td><td>a.n. <?= BANK_1_AN ?></td><td class="fw-bold text-end"><?= BANK_1_REK ?></td></tr>
+                                <tr><td><strong>Mandiri</strong></td><td>a.n. <?= BANK_2_AN ?></td><td class="fw-bold text-end"><?= BANK_2_REK ?></td></tr>
+                                <tr><td><strong>BRI</strong></td><td>a.n. <?= BANK_3_AN ?></td><td class="fw-bold text-end"><?= BANK_3_REK ?></td></tr>
+                            </table>
+                            <small class="text-muted">Konfirmasi transfer via WA setelah pembayaran.</small>
+                        </div>
+
+                        <!-- Info QRIS -->
+                        <div id="infoQris" class="text-center py-3 d-none">
+                            <h6 class="fw-bold"><i class="bi bi-qr-code me-2"></i>Scan QRIS untuk Bayar</h6>
+                            <img src="<?= QRIS_IMAGE ?>" alt="QRIS" class="img-fluid border rounded-3 p-2" style="max-width:220px;">
+                            <p class="small text-muted mt-2">Scan menggunakan GoPay, OVO, DANA, atau Mobile Banking.</p>
+                        </div>
+
+                        <script>
+                            function toggleBayar(val) {
+                                document.getElementById('infoTransfer').classList.toggle('d-none', val !== 'transfer');
+                                document.getElementById('infoQris').classList.toggle('d-none', val !== 'qris');
+                            }
+                        </script>
+
                         <div class="mb-4">
                             <label class="form-label small fw-bold">Catatan Pesanan</label>
                             <textarea name="catatan" class="form-control rounded-3" rows="2" placeholder="Contoh: Cuko agak pedas, atau tambahkan mie lebih banyak"></textarea>

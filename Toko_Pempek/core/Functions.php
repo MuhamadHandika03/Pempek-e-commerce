@@ -1,10 +1,10 @@
 <?php
-function rupiah($angka) {
+function format_rupiah($angka) {
     return "Rp " . number_format($angka, 0, ',', '.');
 }
 
-function format_rupiah($angka) {
-    return "Rp " . number_format($angka, 0, ',', '.');
+function check_active($value) {
+    return isset($_GET['kat']) && is_array($_GET['kat']) && in_array($value, $_GET['kat']) ? 'checked' : '';
 }
 
 function format_tanggal($datetime) {
