@@ -11,7 +11,7 @@ $produk_tersedia = $conn->query("SELECT COUNT(*) FROM produk WHERE status = 'ter
 $pesanan_baru = $conn->query("SELECT COUNT(*) FROM pesanan WHERE status = 'menunggu'")->fetchColumn();
 $total_pesanan = $conn->query("SELECT COUNT(*) FROM pesanan")->fetchColumn();
 $total_pendapatan = $conn->query("SELECT COALESCE(SUM(total_harga), 0) FROM pesanan WHERE status != 'batal'")->fetchColumn();
-$pesanan_hari_ini = $conn->query("SELECT COUNT(*) FROM pesanan WHERE DATE(created_at) = CURDATE()")->fetchColumn();
+$pesanan_hari_ini = $conn->query("SELECT COUNT(*) FROM pesanan WHERE DATE(created_at) = CURDATE() AND status != 'batal'")->fetchColumn();
 
 // Pesanan terbaru
 $stmt_pesanan = $conn->query("
